@@ -9,11 +9,11 @@ Args:
     int mid: starting index of the second subarray
     int end: ending position of the second subarray (not included in the array)
 */
-void merge(int *p, int first, int second, int end) {
+void merge2(int *p, int first, int second, int end) {
     int* tmp = malloc(sizeof(int) * (second - first));
     int i, j, k;  // Iterators for the subarrays and the array
     int l1 = second - first; // Lengths of the arrays
-    int l2 = end - second + 1;
+    // int l2 = end - second + 1;
     // Move the first subarray
     for(i = 0; i < l1; i++) {
         tmp[i] = p[first + i];
@@ -65,7 +65,7 @@ void recursiveMergesort(int *p, int start, int end) {
         int mid = (start + end) / 2;
         recursiveMergesort(p, start, mid);
         recursiveMergesort(p, mid, end);
-        merge(p, start, mid, end);
+        merge2(p, start, mid, end);
     }
 };
 

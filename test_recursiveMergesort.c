@@ -1,19 +1,12 @@
 #include <stdio.h>
 #include "recursiveMergesort.h"
-
-void printIntArray(int *p, int len) {
-    int i;
-    for(i = 0; i < len; i++) {
-        printf("%d ", p[i]);
-    }
-    printf("\n");
-}
+#include "utils.h"
 
 void testMerge(int *p, int len) {
     printf("-----------------\n");
     printf("Array: ");
     printIntArray(p, len);
-    merge(p, 0, len/2, len);
+    merge2(p, 0, len/2, len);
     printf("Merged: ");
     printIntArray(p, len);
     printf("-----------------\n");
