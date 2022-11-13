@@ -58,10 +58,10 @@ Args:
 Returns
     Pointer to the merged array
 */
-int* merge2(int* p1, int l1, int* p2, int l2) {
-    int* merged = malloc(sizeof(int) * (l1, + l2));    
+int* parallelMerge2(int* p1, int l1, int* p2, int l2) {
+    int* merged = malloc(sizeof(int) * (l1 + l2));    
     int i = 0, j = 0, k = 0; // Iterators
-    while(i < l1, j < l2) {
+    while((i < l1) && (j < l2)) {
         if(p1[i] < p2[j]) {
             merged[k] = p1[i];
             i++;
@@ -114,16 +114,18 @@ int* parallelMerge(int* p, int len, int rank, int world) {
     int recvFrom;
     int i = 1;  // 2^i
     MPI_Status status;
-    int* buff, tmp;
+    int* buff;
+    int* tmp;
 
     // Use 2^i instead of the actual iterator
     while(i < pow(2, depth)) {
         if(rank % (2 * i) == 0) { // Receive from rank + 2^(i - 1)
             recvFrom = rank + i;      
             if(recvFrom < world) {    // The sender exists
+                buff = malloc(sizeof(int) * len * i);
                 MPI_Recv(buff, len * i, MPI_INT, recvFrom, 0, MPI_COMM_WORLD, &status);
                 tmp = p;
-                p = merge2(tmp, len * i, buff, len * i);
+                p = parallelMerge2(tmp, len * i, buff, len * i);
                 free(tmp);
                 free(buff);
             }

@@ -2,7 +2,7 @@
 #include "recursiveMergesort.h"
 #include "utils.h"
 
-void testMerge(int *p, int len) {
+void testMergeN(int *p, int len) {
     printf("-----------------\n");
     printf("Array: ");
     printIntArray(p, len);
@@ -32,10 +32,10 @@ int main(int argc, char const *argv[])
     int m3[10] = {1,3,5,7,9,2,4,6,8,10};
     int m4[10] = {1,3,5,7,9,2,4,6,8};
     
-    testMerge(m1, L);
-    testMerge(m2, L);
-    testMerge(m3, L);
-    testMerge(m4, L-1);
+    testMergeN(m1, L);
+    testMergeN(m2, L);
+    testMergeN(m3, L);
+    testMergeN(m4, L-1);
 
     printf("#############\n");
     printf("Sort part\n");

@@ -4,7 +4,7 @@
 #include "mergesort.h"
 #include "utils.h"
 
-void testMerge(int *p, int len) {
+void testMergeN(int *p, int len) {
     int* tmp;
     printf("-----------------\n");
     printf("Array: ");
@@ -34,6 +34,26 @@ void testParallelMergeSort1(int *p, int len) {
     }
 }
 
+void testParallelMerge(int *p, int len) {
+    int* tmp;
+    int rank, world;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world);
+
+    if(rank == 0) {
+        printf("-----------------\n");
+    }
+    printf("Array %d/%d: ", rank, world);
+    printIntArray(p, len);    
+    tmp = parallelMerge(p, len, rank, world);
+    if(rank == 0) {
+        printf("Merged (%d): ", len * world);
+        printIntArray(tmp, len * world);
+        printf("-----------------\n");
+    }
+    free(tmp);
+}
+
 int main(int argc, char const *argv[])
 {
     MPI_Init(NULL, NULL);
@@ -50,10 +70,10 @@ int main(int argc, char const *argv[])
     if(rank == 0) {
         printf("#############\n");
         printf("Merge part\n");
-        testMerge(m1, L);
-        testMerge(m2, L);
-        testMerge(m3, L);
-        testMerge(m4, L-1);
+        testMergeN(m1, L);
+        testMergeN(m2, L);
+        testMergeN(m3, L);
+        testMergeN(m4, L-1);
     }
 
     if(rank == 0) {
@@ -65,5 +85,16 @@ int main(int argc, char const *argv[])
     testParallelMergeSort1(m3, L);
     //FIX: it does not work if the length of the array is not divisible by the number of processes
     testParallelMergeSort1(m4, L-1); 
+    
+    int pm1[4] = {1,2,3,4};
+    int i;
+    for(i = 0; i < 4; i++) {
+        pm1[i] *= rank + 1;
+    }
+    if(rank == 0) {
+        printf("#############\n");
+        printf("Parallel Merge\n");
+    }
+    testParallelMerge(pm1, 4);
     return 0;
 }
