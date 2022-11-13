@@ -2,6 +2,13 @@
 #include <stdio.h>
 #include "utils.h"
 
+/*
+Print an array.
+
+Args:
+    int* p: array to print
+    int len: length of the array to print
+*/
 void printIntArray(int *p, int len) {
     int i;
     for(i = 0; i < len; i++) {
