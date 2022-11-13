@@ -17,16 +17,16 @@ void testMerge(int *p, int len) {
 }
 
 void testParallelMergeSort1(int *p, int len) {   
-    int rank, word;
+    int rank, world;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &word);
+    MPI_Comm_size(MPI_COMM_WORLD, &world);
 
     if(rank == 0) {
         printf("-----------------\n");
         printf("Array: ");
         printIntArray(p, len);
     }
-    parallelMergesort1(p, 0, len, rank, word);
+    parallelMergesort1(p, len, rank, world);
     if(rank == 0) {
         printf("Sorted: ");
         printIntArray(p, len);
@@ -37,9 +37,9 @@ void testParallelMergeSort1(int *p, int len) {
 int main(int argc, char const *argv[])
 {
     MPI_Init(NULL, NULL);
-    int rank, word;
+    int rank, world;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &word);
+    MPI_Comm_size(MPI_COMM_WORLD, &world);
     
     const int L = 16;
     int m1[16] = {1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16};

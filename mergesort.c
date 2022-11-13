@@ -93,7 +93,7 @@ Args:
     int* p: subarray
     int len: length of the subarray (it should be the same for each process)
     int rank: rank of the process
-    int word: size of the WORD communicator
+    int world: size of the WORD communicator
 Returns:
     The pointer to the merged arrat if rank is 0, NULL otherwise.
 
@@ -108,8 +108,8 @@ Communication pattern:
 
 A process finishes when it sends the data.
 */
-int* parallelMerge(int* p, int len, int rank, int word) {
-    int depth = (int)ceil(log2(word));
+int* parallelMerge(int* p, int len, int rank, int world) {
+    int depth = (int)ceil(log2(world));
     int sendTo;
     int recvFrom;
     int i = 1;  // 2^i
@@ -120,7 +120,7 @@ int* parallelMerge(int* p, int len, int rank, int word) {
     while(i < pow(2, depth)) {
         if(rank % (2 * i) == 0) { // Receive from rank + 2^(i - 1)
             recvFrom = rank + i;      
-            if(recvFrom < word) {    // The sender exists
+            if(recvFrom < world) {    // The sender exists
                 MPI_Recv(buff, len * i, MPI_INT, recvFrom, 0, MPI_COMM_WORLD, &status);
                 tmp = p;
                 p = merge2(tmp, len * i, buff, len * i);
@@ -138,12 +138,10 @@ int* parallelMerge(int* p, int len, int rank, int word) {
     return p;
 }
 
-void parallelMergesort1(int* p, int start, int end, int rank, int word) {
+void parallelMergesort1(int* p, int size, int rank, int world) {
     // Split
-    int size = (end - start) / word;
     int* subarray = malloc(sizeof(int) * size);
 
-    p = p + start;  //align to start -> this does not change the array outside the function
     MPI_Scatter(p, size, MPI_INT, subarray, size, MPI_INT, 0, MPI_COMM_WORLD);
 
     // Sort
@@ -154,6 +152,21 @@ void parallelMergesort1(int* p, int start, int end, int rank, int word) {
     free(subarray);
     
     if (rank == 0) {
-        p = mergeN(p, size * word, word);
+        p = mergeN(p, size * world, world);
     }
+}
+
+// TODO use len/size instead of start and end
+void parallelMergesort2(int* p, int size, int rank, int world) {
+    // Split    
+    int* subarray = malloc(sizeof(int) * size);
+
+    MPI_Scatter(p, size, MPI_INT, subarray, size, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // Sort
+    recursiveMergesort(subarray, 0, size);
+    
+    //Merge
+    p = parallelMerge(subarray, size, rank, world);
+    free(subarray);
 }
