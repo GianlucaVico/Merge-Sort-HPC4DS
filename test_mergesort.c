@@ -43,15 +43,15 @@ void testParallelMerge(int *p, int len) {
     if(rank == 0) {
         printf("-----------------\n");
     }
-    printf("Array %d/%d: ", rank, world);
-    printIntArray(p, len);    
+    //printf("Array %d/%d: ", rank, world);
+    //printIntArray(p, len);    
     tmp = parallelMerge(p, len, rank, world);
     if(rank == 0) {
         printf("Merged (%d): ", len * world);
         printIntArray(tmp, len * world);
         printf("-----------------\n");
+        //free(tmp);
     }
-    free(tmp);
 }
 
 int main(int argc, char const *argv[])

@@ -112,7 +112,7 @@ int* parallelMerge(int* p, int len, int rank, int world) {
     int depth = (int)ceil(log2(world));
     int sendTo;
     int recvFrom;
-    int i = 1;  // 2^i
+    int i = 1;  // 2^i  -> first value: 2^0
     MPI_Status status;
     int* buff;
     int* tmp;
@@ -122,21 +122,25 @@ int* parallelMerge(int* p, int len, int rank, int world) {
         if(rank % (2 * i) == 0) { // Receive from rank + 2^(i - 1)
             recvFrom = rank + i;      
             if(recvFrom < world) {    // The sender exists
-                buff = malloc(sizeof(int) * len * i);
+                buff = malloc(sizeof(int) * len * i);       
+                // printf("%d <- %d\n", rank, recvFrom);
+                // fflush(stdout);         
                 MPI_Recv(buff, len * i, MPI_INT, recvFrom, 0, MPI_COMM_WORLD, &status);
                 tmp = p;
                 p = parallelMerge2(tmp, len * i, buff, len * i);
-                free(tmp);
                 free(buff);
             }
         }else { // Send to rank - 2^(i-1)
             sendTo = rank - i;
+            // printf("%d -> %d\n", rank, sendTo);
+            // fflush(stdout);
             MPI_Send(p, len * i, MPI_INT, sendTo, 0, MPI_COMM_WORLD);
             free(p);
             return NULL;
         }   
         i*=2;    
     }
+    
     return p;
 }
 
@@ -158,7 +162,6 @@ void parallelMergesort1(int* p, int size, int rank, int world) {
     }
 }
 
-// TODO use len/size instead of start and end
 void parallelMergesort2(int* p, int size, int rank, int world) {
     // Split    
     int* subarray = malloc(sizeof(int) * size);
