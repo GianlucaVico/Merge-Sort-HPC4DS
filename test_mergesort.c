@@ -9,7 +9,8 @@ void testMergeN(int *p, int len) {
     printf("-----------------\n");
     printf("Array: ");
     printIntArray(p, len);
-    tmp = mergeN(p, 16, 4);
+    //tmp = mergeN(p, 16, 4);
+    tmp = mergeN(p, len, 4);
     printf("Merged: ");
     printIntArray(tmp, len);
     printf("-----------------\n");
@@ -83,8 +84,7 @@ int main(int argc, char const *argv[])
     testParallelMergeSort1(m1, L);
     testParallelMergeSort1(m2, L);
     testParallelMergeSort1(m3, L);
-    //FIX: it does not work if the length of the array is not divisible by the number of processes
-    testParallelMergeSort1(m4, L-1); 
+    testParallelMergeSort1(m4, L-1);
     
     int pm1[4] = {1,2,3,4};
     int i;
