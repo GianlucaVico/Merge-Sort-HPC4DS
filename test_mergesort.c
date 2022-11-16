@@ -128,10 +128,13 @@ int main(int argc, char const *argv[])
     }
 
     int m5[14] = {1,5,9,13, 2,6,10,14, 3,7,11,15, 4,8};
-    // testParallelMergeSort2(m1, L);
-    // testParallelMergeSort2(m2, L);
+    testParallelMergeSort2(pm1, L);
+    testParallelMergeSort2(pm2, L);
     testParallelMergeSort2(m3, L);
-    // testParallelMergeSort2(m4, L-1);
-    // testParallelMergeSort2(m5, L-2);
+    testParallelMergeSort2(m4, L-1);
+    testParallelMergeSort2(m5, L-2); 
+    
+    
+    MPI_Barrier(MPI_COMM_WORLD); //Wait for print
     return 0;
 }

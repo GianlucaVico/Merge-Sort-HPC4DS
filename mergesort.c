@@ -17,6 +17,7 @@ Args:
 Retuns
     Pointer to the marged array
 */
+//TODO check if mergeN is called on subarrays with different lengths
 int* mergeN(int* p, int len, int nHeads) {
     int* heads = (int*)malloc(sizeof(int) * nHeads); // Positions on the subarrays    
     int* headValues = malloc(sizeof(int) * nHeads); // Values of the arrays
@@ -71,7 +72,7 @@ int* mergeN(int* p, int len, int nHeads) {
             headValues[minHead] = adaptedP[minHead*subSize+heads[minHead]];
         }
     }
-
+    
 
 // start Benjamin
     // Remove the unecissary elements from the end of the array which were appended earlier.
@@ -149,7 +150,6 @@ Communication pattern:
 
 A process finishes when it sends the data.
 */
-// TODO this does not always work correctly when the number of processes is not a power of 2
 int* parallelMerge(int* p, int len, int rank, int world) {
     int depth = (int)ceil(log2(world));  // Depth of the tree
     int sendTo;     // Process where to send the array
@@ -157,22 +157,25 @@ int* parallelMerge(int* p, int len, int rank, int world) {
     int i = 1;  // Iterator as powers of 2: 2^0, 2^1, 2^2 ...
     MPI_Status status;
     int* buff;  // To receive the array
-    
+    int count;  // How many elements we are receiving
     while(i < pow(2, depth)) {
-        if(rank % (2 * i) == 0) { // Receive from rank + 2^(i)
+        if(rank % (2 * i) == 0) { // Receive from rank + 2^(i)            
             recvFrom = rank + i;      
             if(recvFrom < world) {    // The sender exists
-                buff = malloc(sizeof(int) * len * i);       
-                MPI_Recv(buff, len * i, MPI_INT, recvFrom, 0, MPI_COMM_WORLD, &status);
-                p = parallelMerge2(p, len * i, buff, len * i);  // Merge the 2 arrays
+                MPI_Probe(recvFrom, 0, MPI_COMM_WORLD, &status);
+                MPI_Get_count(&status, MPI_INT, &count);
+                buff = malloc(sizeof(int) * count);       
+                MPI_Recv(buff, count, MPI_INT, recvFrom, 0, MPI_COMM_WORLD, &status);
+                
+                //printf("SOURCE: %d - ERROR: %d - COUNT: %d\n", status.MPI_SOURCE, status.MPI_ERROR, count);
+                p = parallelMerge2(p, len, buff, count);  // Merge the 2 arrays                
+                len += count;
                 free(buff);
             }
-        }else { // Send to rank - 2^(i)
-            sendTo = rank - i;
-            MPI_Send(p, len * i, MPI_INT, sendTo, 0, MPI_COMM_WORLD);
-            //free(p);
+        }else { // Send to rank - 2^(i)            
+            sendTo = rank - i;                        
+            MPI_Send(p, len, MPI_INT, sendTo, 0, MPI_COMM_WORLD);            
             break;        
-            //return NULL;
         }   
         i*=2;    
     }
@@ -190,20 +193,33 @@ Args:
 */
 void parallelMergesort1(int* p, int size, int rank, int world) {
     // Split
-    size = size / world;    // Size of the subarray
-    int* subarray = malloc(sizeof(int) * size); 
+    int subsize = size / world;    // Size of the subarray
+    int* subarray = malloc(sizeof(int) * subsize); 
 
-    MPI_Scatter(p, size, MPI_INT, subarray, size, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Scatter(p, subsize, MPI_INT, subarray, subsize, MPI_INT, 0, MPI_COMM_WORLD);
 
     // Sort
-    recursiveMergesort(subarray, 0, size); 
+    recursiveMergesort(subarray, 0, subsize); 
     
     //Merge
-    MPI_Gather(subarray, size, MPI_INT, p, size, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Gather(subarray, subsize, MPI_INT, p, subsize, MPI_INT, 0, MPI_COMM_WORLD);
     free(subarray);
     
     if (rank == 0) {
-        p = mergeN(p, size * world, world);
+        int i;
+        int tail = size - subsize * world;            // Length 
+        int* extra = malloc(sizeof(int) * (tail));    // Store the tail
+        for(i = 0; i < tail; i++) {
+            extra[i] = p[size - tail + i];
+        }
+        recursiveMergesort(extra, 0, tail);
+        int* tmp = mergeN(p, subsize * world, world);
+        tmp = parallelMerge2(tmp, subsize * world, extra, tail);
+        for(i = 0; i < size; i++) {
+            p[i] = tmp[i];
+        }
+        free(tmp);
+        free(extra);
     }
 }
 
@@ -216,28 +232,38 @@ Args:
     int rank: rank of the process
     int world: size of the communicator
 */
-// TODO this does not work then the size is not a multiple of the number of processes
 void parallelMergesort2(int* p, int size, int rank, int world) {
     // Split       
-    size = size / world;    // Size of the subarray
-    int* subarray = malloc(sizeof(int) * size);
+    int subsize = size / world;    // Size of the subarray
+    int* subarray = malloc(sizeof(int) * subsize);    
 
-    MPI_Scatter(p, size, MPI_INT, subarray, size, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Scatter(p, subsize, MPI_INT, subarray, subsize, MPI_INT, 0, MPI_COMM_WORLD);
     
     // Sort
-    recursiveMergesort(subarray, 0, size);
+    recursiveMergesort(subarray, 0, subsize);
     
     //Merge    
     if(rank == 0) {     // Processes 0 receives the results
-        int* tmp = parallelMerge(subarray, size, rank, world);    
-        // Store the results in the original array
         int i;
-        for(i = 0; i < size * world; i++) {
+        // Sort the part of the array that wasn't scattered
+        int tail = size - subsize * world;            // Length 
+        int* extra = malloc(sizeof(int) * (tail));    // Store the tail
+        for(i = 0; i < tail; i++) {
+            extra[i] = p[size - tail + i];
+        }
+        recursiveMergesort(extra, 0, tail);
+        int* tmp = parallelMerge(subarray, subsize, rank, world);    
+        
+        // Store the results in the original array        
+        tmp = parallelMerge2(tmp, subsize * world, extra, tail);        
+        for(i = 0; i < size; i++) {
             p[i] = tmp[i];
         }
+        free(tmp);
+        free(extra);
     }else{
         // The other processes send they results
-        parallelMerge(subarray, size, rank, world);   
+        parallelMerge(subarray, subsize, rank, world);   
     }
     free(subarray);
 }
