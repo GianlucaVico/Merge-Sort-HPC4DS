@@ -179,15 +179,24 @@ int* parallelMerge(int* p, int len, int rank, int world) {
     return p;
 }
 
+/*
+Parallel merge sort: parallel split, serial merge
+
+Args:
+    int* p: array to sort (in/out)
+    int size: size of the array
+    int rank: rank of the process
+    int world: size of the communicator
+*/
 void parallelMergesort1(int* p, int size, int rank, int world) {
     // Split
-    size = size / world;
-    int* subarray = malloc(sizeof(int) * size);
+    size = size / world;    // Size of the subarray
+    int* subarray = malloc(sizeof(int) * size); 
 
     MPI_Scatter(p, size, MPI_INT, subarray, size, MPI_INT, 0, MPI_COMM_WORLD);
 
     // Sort
-    recursiveMergesort(subarray, 0, size);
+    recursiveMergesort(subarray, 0, size); 
     
     //Merge
     MPI_Gather(subarray, size, MPI_INT, p, size, MPI_INT, 0, MPI_COMM_WORLD);
@@ -198,10 +207,19 @@ void parallelMergesort1(int* p, int size, int rank, int world) {
     }
 }
 
+/*
+Parallel merge sort: parallel split, parallel merge
+
+Args:
+    int* p: array to sort (in/out)
+    int size: size of the array
+    int rank: rank of the process
+    int world: size of the communicator
+*/
 // TODO this does not work then the size is not a multiple of the number of processes
 void parallelMergesort2(int* p, int size, int rank, int world) {
     // Split       
-    size = size / world;
+    size = size / world;    // Size of the subarray
     int* subarray = malloc(sizeof(int) * size);
 
     MPI_Scatter(p, size, MPI_INT, subarray, size, MPI_INT, 0, MPI_COMM_WORLD);
@@ -210,13 +228,15 @@ void parallelMergesort2(int* p, int size, int rank, int world) {
     recursiveMergesort(subarray, 0, size);
     
     //Merge    
-    if(rank == 0) {
+    if(rank == 0) {     // Processes 0 receives the results
         int* tmp = parallelMerge(subarray, size, rank, world);    
+        // Store the results in the original array
         int i;
         for(i = 0; i < size * world; i++) {
             p[i] = tmp[i];
         }
     }else{
+        // The other processes send they results
         parallelMerge(subarray, size, rank, world);   
     }
     free(subarray);
