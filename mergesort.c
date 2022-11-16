@@ -20,13 +20,43 @@ Retuns
 int* mergeN(int* p, int len, int nHeads) {
     int* heads = (int*)malloc(sizeof(int) * nHeads); // Positions on the subarrays    
     int* headValues = malloc(sizeof(int) * nHeads); // Values of the arrays
-    int* merged = malloc(sizeof(int) * len);    
 
-    int subSize = len / nHeads; // Size of each subarray
+
+// start Benjamin  
+    // Count how many elements are needed to make the array divisible. 
+    int appendCount = 0;
+    while((len+appendCount)%nHeads != 0)
+    {
+        appendCount++;
+    }
+    int subSize = (len+appendCount)/nHeads; // The length of each sub-array.
+    int* adaptedP = malloc(sizeof(int)*(len+appendCount)); // An array with elements appended to make it divisible.
+    int* merged = malloc(sizeof(int)*(len+appendCount)); // The final array.
+    int skip = 0; // How many elements have been appended.
+    // Goes through the original array backwards appending INT_MAX at the end of sub-arrays until the array is divisible.  
+    int index = len-1; // Keeps track of position in the original array.
+    for(int i = (len+appendCount)-1; i >= 0; i--)
+    {
+        // Checks if the position is the end of a sub-array and it is still necissary to append.
+        if((i+1)%subSize == 0 && skip < appendCount)
+        {
+            adaptedP[i] = INT_MAX;
+            skip++;
+        }
+        // Otherwise copy from the original array.
+        else
+        {
+            adaptedP[i] = p[index];
+            index--;
+        }
+    }
+// end Benjamin
+
+
     int i;
     for(i = 0; i < nHeads; i++) {
         heads[i] = 0;
-        headValues[i] = p[subSize * i];
+        headValues[i] = adaptedP[subSize*i];
     }
 
     int minHead;
@@ -38,13 +68,24 @@ int* mergeN(int* p, int len, int nHeads) {
         if (heads[minHead] >= subSize) {    // End of the subarray
             headValues[minHead] = INT_MAX;
         } else {
-            headValues[minHead] = p[minHead * subSize + heads[minHead]];  // Next value on the subarray
+            headValues[minHead] = adaptedP[minHead*subSize+heads[minHead]];
         }
     }
-    
+
+
+// start Benjamin
+    // Remove the unecissary elements from the end of the array which were appended earlier.
+    int* trimmedMerged = malloc(sizeof(int)*len);
+    for(int i = 0; i < len; i++)    
+    {
+        trimmedMerged[i] = merged[i];
+    }    
+// end Benjamin
+
+
     free(heads);
     free(headValues);
-    return merged;
+    return trimmedMerged;
 }
 
 /*
