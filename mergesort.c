@@ -178,8 +178,8 @@ int* parallelMerge(int* p, int len, int rank, int world) {
 }
 
 void parallelMergesort1(int* p, int size, int rank, int world) {
-    size = size / world;
     // Split
+    size = size / world;
     int* subarray = malloc(sizeof(int) * size);
 
     MPI_Scatter(p, size, MPI_INT, subarray, size, MPI_INT, 0, MPI_COMM_WORLD);
@@ -198,6 +198,7 @@ void parallelMergesort1(int* p, int size, int rank, int world) {
 
 void parallelMergesort2(int* p, int size, int rank, int world) {
     // Split    
+    size = size / world;
     int* subarray = malloc(sizeof(int) * size);
 
     MPI_Scatter(p, size, MPI_INT, subarray, size, MPI_INT, 0, MPI_COMM_WORLD);
