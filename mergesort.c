@@ -149,6 +149,7 @@ Communication pattern:
 
 A process finishes when it sends the data.
 */
+// TODO this does not always work correctly when the number of processes is not a power of 2
 int* parallelMerge(int* p, int len, int rank, int world) {
     int depth = (int)ceil(log2(world));  // Depth of the tree
     int sendTo;     // Process where to send the array
@@ -169,8 +170,9 @@ int* parallelMerge(int* p, int len, int rank, int world) {
         }else { // Send to rank - 2^(i)
             sendTo = rank - i;
             MPI_Send(p, len * i, MPI_INT, sendTo, 0, MPI_COMM_WORLD);
-            free(p);
-            return NULL;
+            //free(p);
+            break;        
+            //return NULL;
         }   
         i*=2;    
     }
@@ -196,17 +198,26 @@ void parallelMergesort1(int* p, int size, int rank, int world) {
     }
 }
 
+// TODO this does not work then the size is not a multiple of the number of processes
 void parallelMergesort2(int* p, int size, int rank, int world) {
-    // Split    
+    // Split       
     size = size / world;
     int* subarray = malloc(sizeof(int) * size);
 
     MPI_Scatter(p, size, MPI_INT, subarray, size, MPI_INT, 0, MPI_COMM_WORLD);
-
+    
     // Sort
     recursiveMergesort(subarray, 0, size);
     
-    //Merge
-    p = parallelMerge(subarray, size, rank, world);
+    //Merge    
+    if(rank == 0) {
+        int* tmp = parallelMerge(subarray, size, rank, world);    
+        int i;
+        for(i = 0; i < size * world; i++) {
+            p[i] = tmp[i];
+        }
+    }else{
+        parallelMerge(subarray, size, rank, world);   
+    }
     free(subarray);
 }

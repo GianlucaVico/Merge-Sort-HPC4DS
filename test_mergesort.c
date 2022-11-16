@@ -35,6 +35,24 @@ void testParallelMergeSort1(int *p, int len) {
     }
 }
 
+void testParallelMergeSort2(int *p, int len) {   
+    int rank, world;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world);
+
+    if(rank == 0) {
+        printf("-----------------\n");
+        printf("Array: ");
+        printIntArray(p, len);
+    }
+    parallelMergesort2(p, len, rank, world);
+    if(rank == 0) {
+        printf("Sorted: ");
+        printIntArray(p, len);
+        printf("-----------------\n");
+    }
+}
+
 void testParallelMerge(int *p, int len) {
     int* tmp;
     int rank, world;
@@ -79,7 +97,7 @@ int main(int argc, char const *argv[])
 
     if(rank == 0) {
         printf("#############\n");
-        printf("Sort part\n");
+        printf("ParallelMergeSort1 part\n");
     }
     testParallelMergeSort1(m1, L);
     testParallelMergeSort1(m2, L);
@@ -91,10 +109,29 @@ int main(int argc, char const *argv[])
     for(i = 0; i < 4; i++) {
         pm1[i] *= rank + 1;
     }
+
+    int pm2[4] = {1,5,9};
+    for(i = 0; i < 4; i++) {
+        pm2[i] += rank;
+    }
+
     if(rank == 0) {
         printf("#############\n");
         printf("Parallel Merge\n");
     }
     testParallelMerge(pm1, 4);
+    testParallelMerge(pm2, 3);
+
+    if(rank == 0) {
+        printf("#############\n");
+        printf("ParallelMergeSort2 part\n");
+    }
+
+    int m5[14] = {1,5,9,13, 2,6,10,14, 3,7,11,15, 4,8};
+    // testParallelMergeSort2(m1, L);
+    // testParallelMergeSort2(m2, L);
+    testParallelMergeSort2(m3, L);
+    // testParallelMergeSort2(m4, L-1);
+    // testParallelMergeSort2(m5, L-2);
     return 0;
 }
