@@ -4,5 +4,5 @@
 void printIntArray(int *p, int len) ;
 void generatateRandom(int* p, int len, int min, int max) ;
 int argmin(int* p, int len) ;
-
+void copyArray(int* source, int* dest, int len);
 #endif

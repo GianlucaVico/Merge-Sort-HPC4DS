@@ -53,3 +53,17 @@ int argmin(int* p, int len) {
     }
     return arg;
 }
+/*
+Copy an array into another allocated array of the same length
+
+Args:
+    int* source: array to be copied
+    int* dest: destination array
+    int len: length of the array
+*/
+void copyArray(int* source, int* dest, int len) {
+    int i;
+    for(i = 0; i < len; i++) {
+        dest[i] = source[i];
+    }    
+}

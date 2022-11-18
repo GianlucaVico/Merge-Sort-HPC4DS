@@ -18,6 +18,7 @@ Retuns
     Pointer to the marged array
 */
 //TODO check if mergeN is called on subarrays with different lengths
+//FIX MEMORY LEACK trimmedMerged
 int* mergeN(int* p, int len, int nHeads) {
     int* heads = (int*)malloc(sizeof(int) * nHeads); // Positions on the subarrays    
     int* headValues = malloc(sizeof(int) * nHeads); // Values of the arrays
@@ -77,15 +78,18 @@ int* mergeN(int* p, int len, int nHeads) {
 // start Benjamin
     // Remove the unecissary elements from the end of the array which were appended earlier.
     int* trimmedMerged = malloc(sizeof(int)*len);
-    for(int i = 0; i < len; i++)    
-    {
-        trimmedMerged[i] = merged[i];
-    }    
+    // for(int i = 0; i < len; i++)    
+    // {
+    //     trimmedMerged[i] = merged[i];
+    // }
+    copyArray(merged, trimmedMerged, len);    
 // end Benjamin
 
 
     free(heads);
     free(headValues);
+    free(merged);
+    free(adaptedP);
     return trimmedMerged;
 }
 
@@ -100,6 +104,7 @@ Args:
 Returns
     Pointer to the merged array
 */
+// FIX MEMORY LEAK merged
 int* parallelMerge2(int* p1, int l1, int* p2, int l2) {
     int* merged = malloc(sizeof(int) * (l1 + l2));    
     int i = 0, j = 0, k = 0; // Iterators
@@ -165,9 +170,7 @@ int* parallelMerge(int* p, int len, int rank, int world) {
                 MPI_Probe(recvFrom, 0, MPI_COMM_WORLD, &status);
                 MPI_Get_count(&status, MPI_INT, &count);
                 buff = malloc(sizeof(int) * count);       
-                MPI_Recv(buff, count, MPI_INT, recvFrom, 0, MPI_COMM_WORLD, &status);
-                
-                //printf("SOURCE: %d - ERROR: %d - COUNT: %d\n", status.MPI_SOURCE, status.MPI_ERROR, count);
+                MPI_Recv(buff, count, MPI_INT, recvFrom, 0, MPI_COMM_WORLD, &status);                              
                 p = parallelMerge2(p, len, buff, count);  // Merge the 2 arrays                
                 len += count;
                 free(buff);

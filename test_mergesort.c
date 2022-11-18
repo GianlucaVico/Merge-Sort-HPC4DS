@@ -136,5 +136,6 @@ int main(int argc, char const *argv[])
     
     
     MPI_Barrier(MPI_COMM_WORLD); //Wait for print
+    MPI_Finalize();
     return 0;
 }
