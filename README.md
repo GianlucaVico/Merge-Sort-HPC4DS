@@ -37,4 +37,7 @@
  Recv from rank + 2^d if rank % 2^{d+1} == 0 and the sender exists
  ```
  
- 
+## How to test
+
+* Compile: `mpicc -g -Wall -o test_mergesort test_mergesort.c utils.c mergesort.c recursiveMergesort.c -lm`
+* Debug with Valgrind: `mpiexec -np 2 valgrind --leak-check=full --show-reachable=yes --log-file=test_mergesort_%p.log ./test_mergesort`

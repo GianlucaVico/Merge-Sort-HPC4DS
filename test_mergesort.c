@@ -5,12 +5,13 @@
 #include "utils.h"
 
 void testMergeN(int *p, int len) {
-    int* tmp;
+    int* tmp = malloc(sizeof(int) * len);
+    copyArray(p, tmp, len);
     printf("-----------------\n");
     printf("Array: ");
-    printIntArray(p, len);
+    printIntArray(tmp, len);
     //tmp = mergeN(p, 16, 4);
-    tmp = mergeN(p, len, 4);
+    mergeN(tmp, len, 4);
     printf("Merged: ");
     printIntArray(tmp, len);
     printf("-----------------\n");
@@ -21,57 +22,64 @@ void testParallelMergeSort1(int *p, int len) {
     int rank, world;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world);
-
+    int* tmp = malloc(sizeof(int) * len);
+    copyArray(p, tmp, len);
     if(rank == 0) {
         printf("-----------------\n");
         printf("Array: ");
-        printIntArray(p, len);
+        printIntArray(tmp, len);
     }
-    parallelMergesort1(p, len, rank, world);
+    parallelMergesort1(tmp, len, rank, world);
     if(rank == 0) {
         printf("Sorted: ");
-        printIntArray(p, len);
+        printIntArray(tmp, len);
         printf("-----------------\n");
     }
+    free(tmp);
 }
 
 void testParallelMergeSort2(int *p, int len) {   
     int rank, world;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world);
-
+    int* tmp = malloc(sizeof(int) * len);
+    copyArray(p, tmp, len);
     if(rank == 0) {
         printf("-----------------\n");
         printf("Array: ");
-        printIntArray(p, len);
+        printIntArray(tmp, len);
+        fflush(stdout);
     }
-    parallelMergesort2(p, len, rank, world);
+    parallelMergesort2(tmp, len, rank, world);
     if(rank == 0) {
         printf("Sorted: ");
-        printIntArray(p, len);
+        printIntArray(tmp, len);
         printf("-----------------\n");
     }
+    free(tmp);
 }
 
-void testParallelMerge(int *p, int len) {
-    int* tmp;
-    int rank, world;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &world);
-
-    if(rank == 0) {
-        printf("-----------------\n");
-    }
-    //printf("Array %d/%d: ", rank, world);
-    //printIntArray(p, len);    
-    tmp = parallelMerge(p, len, rank, world);
-    if(rank == 0) {
-        printf("Merged (%d): ", len * world);
-        printIntArray(tmp, len * world);
-        printf("-----------------\n");
-        //free(tmp);
-    }
-}
+// void testParallelMerge(int *p, int len) {    
+//     int rank, world;
+//     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//     MPI_Comm_size(MPI_COMM_WORLD, &world);
+//     int* tmp = malloc(sizeof(int) * len);
+//     int* out = malloc(sizeof(int) * len);
+//     copyArray(p, tmp, len);
+//     if(rank == 0) {
+//         printf("-----------------\n");
+//     }
+//     //printf("Array %d/%d: ", rank, world);
+//     //printIntArray(p, len);    
+//     parallelMerge(tmp, len, rank, world, out);
+//     if(rank == 0) {
+//         printf("Merged (%d): ", len * world);
+//         printIntArray(out, len * world);
+//         printf("-----------------\n");
+//     }
+//     free(out);
+//     free(tmp);
+// }
 
 int main(int argc, char const *argv[])
 {
@@ -119,8 +127,8 @@ int main(int argc, char const *argv[])
         printf("#############\n");
         printf("Parallel Merge\n");
     }
-    testParallelMerge(pm1, 4);
-    testParallelMerge(pm2, 3);
+    // testParallelMerge(pm1, 4);
+    // testParallelMerge(pm2, 3);
 
     if(rank == 0) {
         printf("#############\n");
@@ -136,6 +144,7 @@ int main(int argc, char const *argv[])
     
     
     MPI_Barrier(MPI_COMM_WORLD); //Wait for print
+    
     MPI_Finalize();
     return 0;
 }

@@ -18,8 +18,7 @@ Retuns
     Pointer to the marged array
 */
 //TODO check if mergeN is called on subarrays with different lengths
-//FIX MEMORY LEACK trimmedMerged
-int* mergeN(int* p, int len, int nHeads) {
+void mergeN(int* p, int len, int nHeads) {
     int* heads = (int*)malloc(sizeof(int) * nHeads); // Positions on the subarrays    
     int* headValues = malloc(sizeof(int) * nHeads); // Values of the arrays
 
@@ -76,21 +75,22 @@ int* mergeN(int* p, int len, int nHeads) {
     
 
 // start Benjamin
-    // Remove the unecissary elements from the end of the array which were appended earlier.
-    int* trimmedMerged = malloc(sizeof(int)*len);
+    // Remove the unnecessary elements from the end of the array which were appended earlier.
+    //int* trimmedMerged = malloc(sizeof(int)*len);
     // for(int i = 0; i < len; i++)    
     // {
     //     trimmedMerged[i] = merged[i];
     // }
-    copyArray(merged, trimmedMerged, len);    
+    //copyArray(merged, trimmedMerged, len);    
 // end Benjamin
-
-
+    // This should do the same of the previous block
+    copyArray(merged, p, len);
+    
     free(heads);
     free(headValues);
     free(merged);
     free(adaptedP);
-    return trimmedMerged;
+    //free(trimmedMerged);
 }
 
 /*
@@ -104,9 +104,7 @@ Args:
 Returns
     Pointer to the merged array
 */
-// FIX MEMORY LEAK merged
-int* parallelMerge2(int* p1, int l1, int* p2, int l2) {
-    int* merged = malloc(sizeof(int) * (l1 + l2));    
+void parallelMerge2(int* p1, int l1, int* p2, int l2, int* merged) {
     int i = 0, j = 0, k = 0; // Iterators
     while((i < l1) && (j < l2)) {
         if(p1[i] < p2[j]) {
@@ -130,7 +128,6 @@ int* parallelMerge2(int* p1, int l1, int* p2, int l2) {
         j++;
         k++;
     }
-    return merged;
 }
 
 /*
@@ -155,7 +152,7 @@ Communication pattern:
 
 A process finishes when it sends the data.
 */
-int* parallelMerge(int* p, int len, int rank, int world) {
+void parallelMerge(int* p, int len, int rank, int world, int* out) {
     int depth = (int)ceil(log2(world));  // Depth of the tree
     int sendTo;     // Process where to send the array
     int recvFrom;   // Process that will send an array
@@ -163,16 +160,27 @@ int* parallelMerge(int* p, int len, int rank, int world) {
     MPI_Status status;
     int* buff;  // To receive the array
     int count;  // How many elements we are receiving
+    int* tmp;    
     while(i < pow(2, depth)) {
         if(rank % (2 * i) == 0) { // Receive from rank + 2^(i)            
             recvFrom = rank + i;      
             if(recvFrom < world) {    // The sender exists
+                // Get size
                 MPI_Probe(recvFrom, 0, MPI_COMM_WORLD, &status);
                 MPI_Get_count(&status, MPI_INT, &count);
+                
+                // Receive msg
                 buff = malloc(sizeof(int) * count);       
                 MPI_Recv(buff, count, MPI_INT, recvFrom, 0, MPI_COMM_WORLD, &status);                              
-                p = parallelMerge2(p, len, buff, count);  // Merge the 2 arrays                
+                
+                // Merge                
+                tmp = malloc(sizeof(int) * (len + count));
+                parallelMerge2(p, len, buff, count, tmp);  // Merge the 2 arrays                
+                //free(p);      // FIX free the previous p
+                p = malloc(sizeof(int) * (len + count));
+                copyArray(tmp, p, len + count);                                
                 len += count;
+                free(tmp);
                 free(buff);
             }
         }else { // Send to rank - 2^(i)            
@@ -182,7 +190,10 @@ int* parallelMerge(int* p, int len, int rank, int world) {
         }   
         i*=2;    
     }
-    return p;
+    if(rank == 0) {
+        copyArray(p, out, len);
+        printIntArray(p, len);        
+    }
 }
 
 /*
@@ -216,11 +227,10 @@ void parallelMergesort1(int* p, int size, int rank, int world) {
             extra[i] = p[size - tail + i];
         }
         recursiveMergesort(extra, 0, tail);
-        int* tmp = mergeN(p, subsize * world, world);
-        tmp = parallelMerge2(tmp, subsize * world, extra, tail);
-        for(i = 0; i < size; i++) {
-            p[i] = tmp[i];
-        }
+        mergeN(p, subsize * world, world);
+        int* tmp = malloc(sizeof(int) * size);
+        parallelMerge2(p, subsize * world, extra, tail, tmp);
+        copyArray(tmp, p, size);
         free(tmp);
         free(extra);
     }
@@ -255,18 +265,17 @@ void parallelMergesort2(int* p, int size, int rank, int world) {
             extra[i] = p[size - tail + i];
         }
         recursiveMergesort(extra, 0, tail);
-        int* tmp = parallelMerge(subarray, subsize, rank, world);    
+        int* tmp = malloc(sizeof(int) * subsize * world);
+        parallelMerge(subarray, subsize, rank, world, tmp);    
         
         // Store the results in the original array        
-        tmp = parallelMerge2(tmp, subsize * world, extra, tail);        
-        for(i = 0; i < size; i++) {
-            p[i] = tmp[i];
-        }
+        parallelMerge2(tmp, subsize * world, extra, tail, p); 
+        
         free(tmp);
         free(extra);
     }else{
         // The other processes send they results
-        parallelMerge(subarray, subsize, rank, world);   
+        parallelMerge(subarray, subsize, rank, world, NULL);
     }
     free(subarray);
 }
