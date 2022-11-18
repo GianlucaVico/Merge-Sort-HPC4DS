@@ -117,17 +117,10 @@ void parallelMerge2(int* p1, int l1, int* p2, int l2, int* merged) {
         k++;
     }
     // Remaining part of p1
-    while(i < l1) {
-        merged[k] = p1[i];
-        i++;
-        k++;
-    }
-    // Remaining part of p2
-    while(j < l2) {
-        merged[k] = p2[j];
-        j++;
-        k++;
-    }
+    copyArray(p1+i, merged+k, l1- i);
+    k += l1 - i;
+    // Remaining part of p2    
+    copyArray(p2+j, merged+k, l2- j);
 }
 
 /*
@@ -161,6 +154,10 @@ void parallelMerge(int* p, int len, int rank, int world, int* out) {
     int* buff;  // To receive the array
     int count;  // How many elements we are receiving
     int* tmp;    
+
+    int* subarray = malloc(sizeof(int) * len);  // Use to store the merged array at every iteration
+    copyArray(p, subarray, len);
+
     while(i < pow(2, depth)) {
         if(rank % (2 * i) == 0) { // Receive from rank + 2^(i)            
             recvFrom = rank + i;      
@@ -170,30 +167,32 @@ void parallelMerge(int* p, int len, int rank, int world, int* out) {
                 MPI_Get_count(&status, MPI_INT, &count);
                 
                 // Receive msg
-                buff = malloc(sizeof(int) * count);       
+                buff = malloc(sizeof(int) * count);
                 MPI_Recv(buff, count, MPI_INT, recvFrom, 0, MPI_COMM_WORLD, &status);                              
                 
                 // Merge                
                 tmp = malloc(sizeof(int) * (len + count));
-                parallelMerge2(p, len, buff, count, tmp);  // Merge the 2 arrays                
-                //free(p);      // FIX free the previous p
-                p = malloc(sizeof(int) * (len + count));
-                copyArray(tmp, p, len + count);                                
+                parallelMerge2(subarray, len, buff, count, tmp);  // Merge the 2 arrays                
+                free(subarray); 
+
+                // Move result in subarray
                 len += count;
+                subarray = malloc(sizeof(int) * (len));                
+                copyArray(tmp, subarray, len);                                                
                 free(tmp);
                 free(buff);
             }
         }else { // Send to rank - 2^(i)            
             sendTo = rank - i;                        
-            MPI_Send(p, len, MPI_INT, sendTo, 0, MPI_COMM_WORLD);            
+            MPI_Send(subarray, len, MPI_INT, sendTo, 0, MPI_COMM_WORLD);            
             break;        
         }   
         i*=2;    
     }
     if(rank == 0) {
-        copyArray(p, out, len);
-        printIntArray(p, len);        
+        copyArray(subarray, out, len);
     }
+    free(subarray);
 }
 
 /*
@@ -269,8 +268,7 @@ void parallelMergesort2(int* p, int size, int rank, int world) {
         parallelMerge(subarray, subsize, rank, world, tmp);    
         
         // Store the results in the original array        
-        parallelMerge2(tmp, subsize * world, extra, tail, p); 
-        
+        parallelMerge2(tmp, subsize * world, extra, tail, p);         
         free(tmp);
         free(extra);
     }else{
