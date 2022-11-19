@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include "utils.h"
 
 /*
@@ -26,11 +27,11 @@ Args:
     int min: minimum value in the array (inclusive)
     int max: maximum value in the array (inclusive)
 */
-void generatate_random(int** p, int len, int min, int max) {
+void generatateRandom(int* p, int len, int min, int max) {
     int i;
     int range = max - min;
     for(i = 0; i < len; i++) {
-        *p[i] = rand() % range + min;
+        p[i] = rand() % range + min;
     }
 };
 
@@ -66,4 +67,40 @@ void copyArray(int* source, int* dest, int len) {
     for(i = 0; i < len; i++) {
         dest[i] = source[i];
     }    
+}
+
+/*
+Compute the mean of an array
+
+Args:
+    double* p: input array 
+    int len: length of the array
+    double* avg: output mean
+*/
+void getMean(double* p, int len, double* avg) {
+    *avg = 0;
+    int i;
+    for(i = 0; i < len; i++) {
+        *avg += p[i];
+    }
+    *avg /= len;
+}
+
+/*
+Compute the standard deviation of an array
+
+Args:
+    double* p: input array 
+    int len: length of the array
+    double avg: mean
+    double* std: output standard deviation
+*/
+void getStd(double* p, int len, double avg, double* std) {
+    *std = 0;    
+    int i;
+    for(i = 0; i < len; i++) {
+        *std += p[i] - avg;
+    }
+    *std /= len;
+    sqrt(*std);
 }
