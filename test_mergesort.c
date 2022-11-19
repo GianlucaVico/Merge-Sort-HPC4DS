@@ -29,7 +29,7 @@ void testParallelMergeSort1(int *p, int len) {
         printf("Array: ");
         printIntArray(tmp, len);
     }
-    parallelMergesort1(tmp, len, rank, world);
+    parallelMergesort1_(tmp, len, rank, world);
     if(rank == 0) {
         printf("Sorted: ");
         printIntArray(tmp, len);
@@ -50,7 +50,7 @@ void testParallelMergeSort2(int *p, int len) {
         printIntArray(tmp, len);
         fflush(stdout);
     }
-    parallelMergesort2(tmp, len, rank, world);
+    parallelMergesort2_(tmp, len, rank, world);
     if(rank == 0) {
         printf("Sorted: ");
         printIntArray(tmp, len);

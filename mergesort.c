@@ -204,7 +204,7 @@ Args:
     int rank: rank of the process
     int world: size of the communicator
 */
-void parallelMergesort1(int* p, int size, int rank, int world) {
+void parallelMergesort1_(int* p, int size, int rank, int world) {
     // Split
     int subsize = size / world;    // Size of the subarray
     int* subarray = malloc(sizeof(int) * subsize); 
@@ -212,7 +212,7 @@ void parallelMergesort1(int* p, int size, int rank, int world) {
     MPI_Scatter(p, subsize, MPI_INT, subarray, subsize, MPI_INT, 0, MPI_COMM_WORLD);
 
     // Sort
-    recursiveMergesort(subarray, 0, subsize); 
+    recursiveMergesort(subarray, subsize); 
     
     //Merge
     MPI_Gather(subarray, subsize, MPI_INT, p, subsize, MPI_INT, 0, MPI_COMM_WORLD);
@@ -225,7 +225,7 @@ void parallelMergesort1(int* p, int size, int rank, int world) {
         for(i = 0; i < tail; i++) {
             extra[i] = p[size - tail + i];
         }
-        recursiveMergesort(extra, 0, tail);
+        recursiveMergesort(extra, tail);
         mergeN(p, subsize * world, world);
         int* tmp = malloc(sizeof(int) * size);
         parallelMerge2(p, subsize * world, extra, tail, tmp);
@@ -244,7 +244,7 @@ Args:
     int rank: rank of the process
     int world: size of the communicator
 */
-void parallelMergesort2(int* p, int size, int rank, int world) {
+void parallelMergesort2_(int* p, int size, int rank, int world) {
     // Split       
     int subsize = size / world;    // Size of the subarray
     int* subarray = malloc(sizeof(int) * subsize);    
@@ -252,7 +252,7 @@ void parallelMergesort2(int* p, int size, int rank, int world) {
     MPI_Scatter(p, subsize, MPI_INT, subarray, subsize, MPI_INT, 0, MPI_COMM_WORLD);
     
     // Sort
-    recursiveMergesort(subarray, 0, subsize);
+    recursiveMergesort(subarray, subsize);
     
     //Merge    
     if(rank == 0) {     // Processes 0 receives the results
@@ -263,7 +263,7 @@ void parallelMergesort2(int* p, int size, int rank, int world) {
         for(i = 0; i < tail; i++) {
             extra[i] = p[size - tail + i];
         }
-        recursiveMergesort(extra, 0, tail);
+        recursiveMergesort(extra, tail);
         int* tmp = malloc(sizeof(int) * subsize * world);
         parallelMerge(subarray, subsize, rank, world, tmp);    
         
@@ -272,8 +272,22 @@ void parallelMergesort2(int* p, int size, int rank, int world) {
         free(tmp);
         free(extra);
     }else{
-        // The other processes send they results
+        // The other processes send their results
         parallelMerge(subarray, subsize, rank, world, NULL);
     }
     free(subarray);
+}
+
+void parallelMergesort1(int* p, int size) {
+    int rank, world;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_rank(MPI_COMM_WORLD, &world);
+    parallelMergesort1_(p, size, rank, world);
+} 
+ 
+void parallelMergesort2(int* p, int size) {
+    int rank, world;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_rank(MPI_COMM_WORLD, &world);
+    parallelMergesort2_(p, size, rank, world);
 }

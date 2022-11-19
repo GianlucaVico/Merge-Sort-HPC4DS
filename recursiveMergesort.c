@@ -13,7 +13,7 @@ void merge2(int *p, int first, int second, int end) {
     int* tmp = malloc(sizeof(int) * (second - first));
     int i, j, k;  // Iterators for the subarrays and the array
     int l1 = second - first; // Lengths of the arrays
-    // int l2 = end - second + 1;
+    
     // Move the first subarray
     for(i = 0; i < l1; i++) {
         tmp[i] = p[first + i];
@@ -58,14 +58,24 @@ Args:
     int start: starting index of the array to sort
     int end: last index of the array to sort
 */
-void recursiveMergesort(int *p, int start, int end) {   
+void recursiveMergesort_(int *p, int start, int end) {   
     if((end - start) <= 1) {  // TODO: use diff. sort algo if end - start < threshold
         return;
     } else {
         int mid = (start + end) / 2;
-        recursiveMergesort(p, start, mid);
-        recursiveMergesort(p, mid, end);
+        recursiveMergesort_(p, start, mid);
+        recursiveMergesort_(p, mid, end);
         merge2(p, start, mid, end);
     }
 };
 
+/*
+Serial recursive implementation of Merge Sort
+
+Args:
+    int *p: input array to be sorted / output sorted array
+    int len: length of the array
+*/
+void recursiveMergesort(int *p, int len) {
+    recursiveMergesort_(p, 0, len);
+}
