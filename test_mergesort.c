@@ -81,8 +81,7 @@ void testParallelMergeSort2(int *p, int len) {
 //     free(tmp);
 // }
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]) {
     MPI_Init(NULL, NULL);
     int rank, world;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
