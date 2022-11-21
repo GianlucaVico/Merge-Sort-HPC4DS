@@ -16,7 +16,7 @@ void testSort(int *p, int len) {
     printf("-----------------\n");
     printf("Array: ");
     printIntArray(p, len);
-    recursiveMergesort(p, 0, len);
+    recursiveMergesort(p, len);
     printf("Sorted: ");
     printIntArray(p, len);
     printf("-----------------\n");

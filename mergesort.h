@@ -4,7 +4,8 @@
 void mergeN(int* p, int len, int n_heads);
 void parallelMerge2(int* p1, int l1, int* p2, int l2, int* out) ;
 void parallelMerge(int* p, int len, int rank, int world, int* out);
-void parallelMergesort1(int* p, int size, int rank, int world) ; 
-void parallelMergesort2(int* p, int size, int rank, int world) ; 
-
+void parallelMergesort1_(int* p, int size, int rank, int world) ; 
+void parallelMergesort2_(int* p, int size, int rank, int world) ; 
+void parallelMergesort1(int* p, int size) ;
+void parallelMergesort2(int* p, int size) ;
 #endif
