@@ -99,7 +99,7 @@ void getStd(double* p, int len, double avg, double* std) {
     *std = 0;    
     int i;
     for(i = 0; i < len; i++) {
-        *std += p[i] - avg;
+        *std += abs(p[i] - avg);
     }
     *std /= len;
     sqrt(*std);
