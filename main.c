@@ -8,9 +8,9 @@
 int main(int argc, char const *argv[])
 {
     MPI_Init(NULL, NULL);
-    int rank, world;
+    int rank = 0, world = 1;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_rank(MPI_COMM_WORLD, &world);
+    MPI_Comm_size(MPI_COMM_WORLD, &world);
 
     int size, rep, sortAlgo, seed;
     getArg(argc, argv, SIZE_INDEX, &size);
@@ -29,16 +29,20 @@ int main(int argc, char const *argv[])
         break;
     case 1:
         mergeSort = parallelMergesort1;
+        break;
     case 2:
         mergeSort = parallelMergesort2;
+        break;
     default:
-        printf("Invalid merge sort");
+        printf("Invalid merge sort: %d\n", sortAlgo);
         MPI_Finalize();
         return 1;
     }    
     runTest(size, rep, mergeSort, &avg, &std, rank, world);
-    printf("Mean: %5.6e\n", avg);
-    printf("Std: %5.6e\n", std);
+    if(rank == 0) {
+        printf("Mean: %5.6e\n", avg);
+        printf("Std: %5.6e\n", std);
+    }
     MPI_Finalize();
     return 0;
 }

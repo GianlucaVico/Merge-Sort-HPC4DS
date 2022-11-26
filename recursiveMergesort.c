@@ -13,7 +13,7 @@ Args:
     int mid: starting index of the second subarray
     int end: ending position of the second subarray (not included in the array)
 */
-void merge2(int *p, int first, int second, int end) {
+void merge2(int *p, int first, int second, int end) {    
     int* tmp = malloc(sizeof(int) * (second - first));
     int i, j, k;  // Iterators for the subarrays and the array
     int l1 = second - first; // Lengths of the arrays
@@ -73,23 +73,13 @@ void recursiveMergesort_(int *p, int start, int end) {
 };
 
 /*
-Serial recursive implementation of Merge Sort
-Args:
-    int *p: input array to be sorted / output sorted array
-    int len: length of the array
-*/
-void recursiveMergesort(int *p, int len) {
-    recursiveMergesort_(p, 0, len);
-}
-
-/*
 Serial implementation of Quick Sort
 
 Args:
     int *p: input array to be sorted / output sorted array
     int len: length of the p
 */
-void quickSort(int *p, int start, int len) 
+void quickSort_(int *p, int start, int len) 
 {
 
     //printf("length %d\n", len);
@@ -176,7 +166,27 @@ void quickSort(int *p, int start, int len)
         p[swap_index] = pivot_value;
         pivot_index = swap_index;
         // Recursively sort the left and right partitions.
-        quickSort(p, start, pivot_index-start);
-        quickSort(p, pivot_index+1, (len-(pivot_index-start))-1); 
+        quickSort_(p, start, pivot_index-start);
+        quickSort_(p, pivot_index+1, (len-(pivot_index-start))-1); 
     }
+}
+
+/*
+Serial recursive implementation of Merge Sort
+Args:
+    int *p: input array to be sorted / output sorted array
+    int len: length of the array
+*/
+void recursiveMergesort(int *p, int len) {    
+    recursiveMergesort_(p, 0, len);
+}
+
+/*
+Serial recursive implementation of Quick Sort
+Args:
+    int *p: input array to be sorted / output sorted array
+    int len: length of the array
+*/
+void quickSort(int *p, int len) {
+    quickSort_(p, 0, len);
 }
