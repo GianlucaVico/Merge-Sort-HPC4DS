@@ -38,6 +38,9 @@ int main(int argc, char const *argv[])
         MPI_Finalize();
         return 1;
     }    
+    if(rank == 0) {
+        printf("\n\nMerge Sort <size, repetitions, algorithm, seed>: <%d, %d, %d, %d>\n", size, rep, sortAlgo, seed);
+    }
     runTest(size, rep, mergeSort, &avg, &std, rank, world);
     if(rank == 0) {
         printf("Mean: %5.6e\n", avg);
