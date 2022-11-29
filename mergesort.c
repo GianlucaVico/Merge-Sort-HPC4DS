@@ -35,7 +35,8 @@ void mergeN(int* p, int len, int nHeads) {
     int skip = 0; // How many elements have been appended.
     // Goes through the original array backwards appending INT_MAX at the end of sub-arrays until the array is divisible.  
     int index = len-1; // Keeps track of position in the original array.
-    for(int i = (len+appendCount)-1; i >= 0; i--)
+    int i;
+    for(i = (len+appendCount)-1; i >= 0; i--)
     {
         // Checks if the position is the end of a sub-array and it is still necissary to append.
         if((i+1)%subSize == 0 && skip < appendCount)
@@ -52,8 +53,7 @@ void mergeN(int* p, int len, int nHeads) {
     }
 // end Benjamin
 
-
-    int i;
+    
     for(i = 0; i < nHeads; i++) {
         heads[i] = 0;
         headValues[i] = adaptedP[subSize*i];
