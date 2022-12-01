@@ -2,6 +2,7 @@
 #include <limits.h>
 #include <math.h>
 #include <time.h>
+#include <stdbool.h>
 
 #include "recursiveMergesort.h"
 /*
@@ -90,6 +91,14 @@ Args:
 */
 void quickSort(int *p, int start, int len) 
 {
+
+    //printf("length %d\n", len);
+    //for(int i = start; i < start+len; i++)
+    //{
+    //    printf("%d ", p[i]);
+    //}
+    //printf("\n");
+
     int left_index = start;
     int right_index = (left_index+len)-1;
     // A base case. 
@@ -105,12 +114,12 @@ void quickSort(int *p, int start, int len)
     // General case.  No sorting is necissary for size 1 arrays.
     else if (len > 1)
     {
-        srand(time(0)); // Use the current time as a seed to generate a random number.
+        //srand(time(0)); // Use the current time as a seed to generate a random number.
         int pivot_index = (rand()%(len))+left_index; // Choose the pivot index randomly.    
         int pivot_value = p[pivot_index];
         int left_value = p[left_index];
         int right_value = p[right_index];
-        while(true)
+        while(left_index < right_index)
         {
             // Find the leftmost value greater than the pivot.
             while(left_value <= pivot_value)
@@ -157,14 +166,6 @@ void quickSort(int *p, int start, int len)
         else if(left_index > pivot_index && left_value > pivot_value)
         {
             swap_index = left_index-1;
-        }
-        else if(left_index < pivot_index && left_value > pivot_value)
-        {
-            swap_index = left_index;
-        }
-        else if(left_index > pivot_index && left_value < pivot_value)
-        {
-            swap_index = left_index;
         }
         else
         {
