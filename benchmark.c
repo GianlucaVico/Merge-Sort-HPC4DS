@@ -44,6 +44,7 @@ void runTest(int size, int repetitions, sort mergeSort, double* avg, double* std
 
     for(i = 0; i < repetitions; i++) {
         if(rank == 0) {
+            p = malloc(sizeof(int) * size);
             generatateRandom(p, size, 0, 1000);
         }
         MPI_Barrier(MPI_COMM_WORLD);
@@ -56,7 +57,9 @@ void runTest(int size, int repetitions, sort mergeSort, double* avg, double* std
     }
 
     // All the processes executes this -> it does not affect the benchmark
-    getMean(times, repetitions, avg);
-    getStd(times, repetitions, *avg, std);
+    if(rank == 0) {
+        getMean(times, repetitions, avg);
+        getStd(times, repetitions, *avg, std);
+    }
     free(times);
 }
