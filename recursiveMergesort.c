@@ -5,6 +5,8 @@
 #include <stdbool.h>
 
 #include "recursiveMergesort.h"
+
+int THRESHOLD = 20;
 /*
 Merge 2 sorted subarray in a sorted way
 Args:
@@ -61,14 +63,22 @@ Args:
     int start: starting index of the array to sort
     int end: last index of the array to sort
 */
+int compare (const void * a, const void * b)
+{
+  return ( *(int*)a - *(int*)b );
+}
 void recursiveMergesort_(int *p, int start, int end) {   
     if((end - start) <= 1) {  // TODO: use diff. sort algo if end - start < threshold
         return;
-    } else {
-        int mid = (start + end) / 2;
-        recursiveMergesort_(p, start, mid);
-        recursiveMergesort_(p, mid, end);
-        merge2(p, start, mid, end);
+    } else {     
+            if((end - start) < THRESHOLD) {
+                qsort(p+start, end - start, sizeof(int), compare);
+            }else {
+                int mid = (start + end) / 2;
+                recursiveMergesort_(p, start, mid);
+                recursiveMergesort_(p, mid, end);
+                merge2(p, start, mid, end);
+            }
     }
 };
 
@@ -119,9 +129,9 @@ void quickSort_(int *p, int start, int len)
                 {
                     goto PASS;
                 }
-                left_index++;
-                left_value = p[left_index];
-            }
+                    left_index++;
+                    left_value = p[left_index];
+                }
             // Find the rightmost value less than the pivot.
             while(right_value >= pivot_value)
             {
@@ -130,22 +140,22 @@ void quickSort_(int *p, int start, int len)
                 {
                     goto PASS;
                 }
+                    right_index--;
+                    right_value = p[right_index];
+                }
+            // Swap the elements and continue.
+                p[left_index] = right_value;
+                p[right_index] = left_value;
+                left_index++;
+                left_value = p[left_index];
                 right_index--;
                 right_value = p[right_index];
-            }
-            // Swap the elements and continue.
-            p[left_index] = right_value;
-            p[right_index] = left_value;
-            left_index++;
-            left_value = p[left_index];
-            right_index--;
-            right_value = p[right_index];
             // If all swaps have been made, break the loops.
             if(left_index >= right_index)
             {
                 goto PASS;
             }
-        }
+        }        
         PASS:;
         // Find the index to be swapped with the pivot based on index proximity and value comparison.
         int swap_index;
