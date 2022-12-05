@@ -113,13 +113,16 @@ void parallelMerge(int* p, int len, int rank, int world, int* out) {
             recvFrom = rank + i;      
             if(recvFrom < world) {    // The sender exists
                 // Get size
-                MPI_Probe(recvFrom, 0, MPI_COMM_WORLD, &status);
-                MPI_Get_count(&status, MPI_INT, &count);
+                //MPI_Probe(recvFrom, 0, MPI_COMM_WORLD, &status);
+                //MPI_Get_count(&status, MPI_INT, &count);
                 
                 // Receive msg
-                buff = malloc(sizeof(int) * count);
-                MPI_Recv(buff, count, MPI_INT, recvFrom, 0, MPI_COMM_WORLD, &status);                              
+                //buff = malloc(sizeof(int) * count);
+                buff = malloc(sizeof(int) * len);  // Receive at most "len" elements
+                //MPI_Recv(buff, count, MPI_INT, recvFrom, 0, MPI_COMM_WORLD, &status);
+                MPI_Recv(buff, len, MPI_INT, recvFrom, 0, MPI_COMM_WORLD, &status); 
                 
+                MPI_Get_count(&status, MPI_INT, &count);  // Count how many elements we received
                 // Merge                
                 tmp = malloc(sizeof(int) * (len + count));
                 parallelMerge2(subarray, len, buff, count, tmp);  // Merge the 2 arrays                
