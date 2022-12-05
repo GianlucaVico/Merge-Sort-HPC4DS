@@ -16,47 +16,17 @@ Args:
 Retuns
     Pointer to the marged array
 */
-//TODO check if mergeN is called on subarrays with different lengths
-void mergeN(int* p, int len, int nHeads) {
+//I changed mergeN because it is never called with subarray with different lengths
+void mergeN(int* p, int len, int nHeads) {    
     int* heads = (int*)malloc(sizeof(int) * nHeads); // Positions on the subarrays    
     int* headValues = malloc(sizeof(int) * nHeads); // Values of the arrays
+    int* merged = malloc(sizeof(int) * len);    
 
-
-// start Benjamin  
-    // Count how many elements are needed to make the array divisible. 
-    int appendCount = 0;
-    while((len+appendCount)%nHeads != 0)
-    {
-        appendCount++;
-    }
-    int subSize = (len+appendCount)/nHeads; // The length of each sub-array.
-    int* adaptedP = malloc(sizeof(int)*(len+appendCount)); // An array with elements appended to make it divisible.
-    int* merged = malloc(sizeof(int)*(len+appendCount)); // The final array.
-    int skip = 0; // How many elements have been appended.
-    // Goes through the original array backwards appending INT_MAX at the end of sub-arrays until the array is divisible.  
-    int index = len-1; // Keeps track of position in the original array.
+    int subSize = len / nHeads; // Size of each subarray
     int i;
-    for(i = (len+appendCount)-1; i >= 0; i--)
-    {
-        // Checks if the position is the end of a sub-array and it is still necissary to append.
-        if((i+1)%subSize == 0 && skip < appendCount)
-        {
-            adaptedP[i] = INT_MAX;
-            skip++;
-        }
-        // Otherwise copy from the original array.
-        else
-        {
-            adaptedP[i] = p[index];
-            index--;
-        }
-    }
-// end Benjamin
-
-    
     for(i = 0; i < nHeads; i++) {
         heads[i] = 0;
-        headValues[i] = adaptedP[subSize*i];
+        headValues[i] = p[subSize * i];
     }
 
     int minHead;
@@ -68,16 +38,13 @@ void mergeN(int* p, int len, int nHeads) {
         if (heads[minHead] >= subSize) {    // End of the subarray
             headValues[minHead] = INT_MAX;
         } else {
-            headValues[minHead] = adaptedP[minHead*subSize+heads[minHead]];
+            headValues[minHead] = p[minHead * subSize + heads[minHead]];  // Next value on the subarray
         }
     }
-    
     copyArray(merged, p, len);
-    
     free(heads);
     free(headValues);
     free(merged);
-    free(adaptedP);
 }
 
 /*
