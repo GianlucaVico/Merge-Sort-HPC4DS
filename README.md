@@ -39,5 +39,6 @@
  
 ## How to test
 
-* Compile: `mpicc -g -Wall -o test_mergesort test_mergesort.c utils.c mergesort.c recursiveMergesort.c -lm`
-* Debug with Valgrind: `mpiexec -np 2 valgrind --leak-check=full --show-reachable=yes --log-file=test_mergesort_%p.log ./test_mergesort`
+* Compile test: `mpicc -g -Wall -o test_mergesort test_mergesort.c utils.c mergesort.c recursiveMergesort.c -lm`
+* Compile: `mpicc -g -Wall -o main main.c benchmark.c utils.c mergesort.c recursiveMergesort.c -lm`
+* Debug with Valgrind: `mpiexec -np 2 valgrind --leak-check=full --show-reachable=yes --log-file=main_%p.log ./main`
