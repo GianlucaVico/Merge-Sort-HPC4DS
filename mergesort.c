@@ -165,7 +165,7 @@ void parallelMergesort1_(int* p, int size, int rank, int world) {
 
     // Sort
     //recursiveMergesort(subarray, subsize); // Use serial merge sort.
-    quickSort(subarray, 0, subsize); // Use serial quick sort.
+    quickSort(subarray, subsize); // Use serial quick sort.
     
     //Merge
     MPI_Gather(subarray, subsize, MPI_INT, p, subsize, MPI_INT, 0, MPI_COMM_WORLD);
@@ -179,7 +179,7 @@ void parallelMergesort1_(int* p, int size, int rank, int world) {
             extra[i] = p[size - tail + i];
         }
         //recursiveMergesort(extra, tail); // Use serial merge sort.
-        quickSort(extra, 0, tail); // Use serial quick sort.
+        quickSort(extra, tail); // Use serial quick sort.
         mergeN(p, subsize * world, world);
         int* tmp = malloc(sizeof(int) * size);
         parallelMerge2(p, subsize * world, extra, tail, tmp);
@@ -206,7 +206,7 @@ void parallelMergesort2_(int* p, int size, int rank, int world) {
     
     // Sort
     //recursiveMergesort(subarray, subsize); // Use serial merge sort.
-    quickSort(subarray, 0, subsize); // Use serial quick sort.    
+    quickSort(subarray, subsize); // Use serial quick sort.    
 
     //Merge    
     if(rank == 0) {     // Processes 0 receives the results
@@ -218,7 +218,7 @@ void parallelMergesort2_(int* p, int size, int rank, int world) {
             extra[i] = p[size - tail + i];
         }
         //recursiveMergesort(extra, tail); // Use serial merge sort.
-        quickSort(extra, 0, tail); // Use serial quick sort.
+        quickSort(extra, tail); // Use serial quick sort.
         int* tmp = malloc(sizeof(int) * subsize * world);
         parallelMerge(subarray, subsize, rank, world, tmp);    
         
