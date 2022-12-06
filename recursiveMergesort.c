@@ -72,7 +72,7 @@ void recursiveMergesort_(int *p, int start, int end) {
         return;
     } else {     
             if((end - start) < THRESHOLD) {
-                qsort(p+start, end - start, sizeof(int), compare);
+                quickSort_(p, start, end - start);
             }else {
                 int mid = (start + end) / 2;
                 recursiveMergesort_(p, start, mid);
